@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL Shortener Hub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght=400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Link to our clean static CSS stylesheet -->
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="card">
+        <h1>URL Shortener</h1>
+        <p>Enter a long web address to extract a clean, redirectable token link.</p>
+        
+        <div class="input-group">
+            <label for="longUrl">Destination URL</label>
+            <input type="url" id="longUrl" placeholder="https://example.com/very/long/path/here" required>
+        </div>
+        <button onclick="shortenUrl()">Compress URL</button>
+
+        <div id="resultBox" class="result-box">
+            <span>Your Shortened URL:</span>
+            <a id="shortLink" href="#" target="_blank"></a>
+        </div>
+
+        <div id="errorBox" class="error-box"></div>
+    </div>
+
+    <script>
+        async function shortenUrl() {
+            const urlInput = document.getElementById('longUrl').value;
+            const resultBox = document.getElementById('resultBox');
+            const errorBox = document.getElementById('errorBox');
+            const shortLink = document.getElementById('shortLink');
+
+            resultBox.style.display = 'none';
+            errorBox.style.display = 'none';
+
+            if (!urlInput) {
+                errorBox.innerText = "Please provide a valid destination URL.";
+                errorBox.style.display = 'block';
+                return;
+            }
+
+            try {
+                const response = await fetch(`/shorten?long_url=${encodeURIComponent(urlInput)}`, {
+                    method: 'POST'
+                });
+                const data = await response.json();
+
+                if (response.ok) {
+                    shortLink.href = data.short_url;
+                    shortLink.innerText = data.short_url;
+                    resultBox.style.display = 'block';
+                } else {
+                    errorBox.innerText = data.detail || "An unexpected processing error occurred.";
+                    errorBox.style.display = 'block';
+                }
+            } catch (err) {
+                errorBox.innerText = "Failed to communicate with backend microservice.";
+                errorBox.style.display = 'block';
+            }
+        }
+    </script>
+</body>
+</html>
